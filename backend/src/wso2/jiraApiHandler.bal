@@ -17,20 +17,37 @@
 import ballerina/http;
 import ballerina/log;
 import ballerina/io;
+import ballerina/mime;
 
-http:Client clientEP = new("https://support.wso2.com/jira/rest/api/latest");
+# Constant field `QUESTION_MARK`. Holds the value of "?".
+final string QUESTION_MARK = "?";
 
-function getAllIssues(string product, string authKey) returns (json[]) {
+# Constant field `EMPTY_STRING`. Holds the value of "".
+final string EMPTY_STRING = "";
+
+# Constant field `EQUAL_SIGN`. Holds the value of "=".
+final string EQUAL_SIGN = "=";
+
+# Constant field `AMPERSAND`. Holds the value of "&".
+final string AMPERSAND = "&";
+
+// For URL encoding
+# Constant field `ENCODING_CHARSET`. Holds the value for the encoding charset.
+final string ENCODING_CHARSET = "utf-8";
+
+http:Client clientEP = new("https://support.wso2.com");
+
+function getAllIssues(string product, string labels, string authKey) returns (json[]) {
     http:Request req = new;
 
     req.addHeader("Authorization", "Basic " + authKey);
 
     string reqURL = "";
 
-    reqURL = "/search?jql=project=" + product;
+    reqURL = "/jira/rest/api/latest/search";
 
 
-    json[]|error issueDetailsJson = getissuesFromJira(reqURL, req);
+    json[]|error issueDetailsJson = getissuesFromJira(reqURL, product, labels, req);
 
 
     json[] issuesJson = [];
@@ -57,12 +74,24 @@ function getAllIssues(string product, string authKey) returns (json[]) {
     return issuesJson;
 }
 
-function getissuesFromJira(string path, http:Request req) returns json[]|error {
+function getissuesFromJira(string path, string product, string labels, http:Request req) returns json[]|error {
     int page = 0;
     json[] finalIssueArray = [];
     json respJson;
     json issuesArray;
-    var response = clientEP->get(path + "&startAt=" + page + "&maxResults=" + 50, message = req);
+
+    var searchPath = path + "&startAt=" + page + "&maxResults=" + 50;
+
+    // prepare jql
+    string jql = "project=" + product + " and labels in (" + labels + ")";
+
+    // creating array of query parameters key & values
+    string[] queryParamNames = ["jql", "startAt", "maxResults"];
+    string[] queryParamValues = [jql, intToString(page), intToString((page + 50))];
+
+    string queryUrl = prepareQueryUrl(path, queryParamNames, queryParamValues);
+
+    var response = clientEP->get(queryUrl, message = req);
 
     if (response is http:Response) {
         respJson = check response.getJsonPayload();
@@ -105,3 +134,47 @@ function getissuesFromJira(string path, http:Request req) returns json[]|error {
     return finalIssueArray;
 }
 
+# Returns the prepared URL with encoded query.
+# + paths - An array of paths prefixes
+# + queryParamNames - An array of query param names
+# + queryParamValues - An array of query param values
+# + return - The prepared URL with encoded query
+function prepareQueryUrl(string paths, string[] queryParamNames, string[] queryParamValues) returns string {
+
+    string url = paths;
+    url = url + QUESTION_MARK;
+    boolean first = true;
+    int i = 0;
+    foreach var name in queryParamNames {
+        string value = queryParamValues[i];
+
+        string|error encoded = http:encode(value, ENCODING_CHARSET);
+
+        if (encoded is string) {
+            if (name.equalsIgnoreCase("jql")) {
+                var temp = encoded.replace("%3D", "=");
+                encoded = temp;
+            }
+            if (first) {
+                url = url + name + EQUAL_SIGN + encoded;
+                first = false;
+            } else {
+                url = url + AMPERSAND + name + EQUAL_SIGN + encoded;
+            }
+        } else {
+            log:printError("Unable to encode value: " + value, err = encoded);
+            break;
+        }
+        i = i + 1;
+    }
+
+    return url;
+}
+
+function intToString(int num) returns string {
+    string|error str = string.convert(num);
+    if (str is string) {
+        return str;
+    }
+    return EMPTY_STRING;
+}

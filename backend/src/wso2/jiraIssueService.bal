@@ -37,7 +37,7 @@ service jiraIssueService on httpListener {
         methods: ["GET"],
         path: "/product/{productName}"
     }
-    resource function retreaveAllIssuesByProduct(http:Caller caller, http:Request request, string productName) {
+    resource function retrieveAllIssuesByProduct (http:Caller caller, http:Request request, string productName) {
         // Find the requested order from the map and retrieve it in JSON format.
         time:Time startTime = time:currentTime();
         http:Response response = new;
@@ -45,14 +45,21 @@ service jiraIssueService on httpListener {
         int readArrayIndex = 0;
         json[] partialIssueJson = [];
 
-        json[] intermediantIssueJson = getAllIssues(untaint productName, GENERAL_AUTH_KEY);
+        map<string> filterValues = request.getQueryParams();
+        string? labelsString = filterValues["labels"];
+
+
+        if (labelsString is string){
+
+        json[] intermediantIssueJson = getAllIssues(untaint productName, untaint labelsString, GENERAL_AUTH_KEY);
 
         foreach var item in intermediantIssueJson {
             issuesJson[issuesJson.length()] = item;
         }
-        //}
+
 
         response.setJsonPayload(untaint issuesJson);
+        }
         time:Time endTime = time:currentTime();
         int totalTime = endTime.time - startTime.time;
         // Send response to the client.
@@ -61,16 +68,6 @@ service jiraIssueService on httpListener {
             log:printError("Error sending response", err = result);
         }
     }
-}
-
-function spliceArray(int key, json array) returns (json[], int) {
-    int i = 0;
-    json[] newArray = [];
-    while (i + key < array.length() && i < 5) {
-        newArray[i] = array[i + key];
-        i = i + 1;
-    }
-    return (newArray, i + key);
 }
 
 
