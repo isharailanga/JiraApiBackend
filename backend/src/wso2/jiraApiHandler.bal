@@ -151,8 +151,10 @@ function prepareQueryUrl(string paths, string[] queryParamNames, string[] queryP
         string|error encoded = http:encode(value, ENCODING_CHARSET);
 
         if (encoded is string) {
+
+            // jql queries must contain EQUAL_SIGN
             if (name.equalsIgnoreCase("jql")) {
-                var temp = encoded.replace("%3D", "=");
+                var temp = encoded.replace("%3D", EQUAL_SIGN);
                 encoded = temp;
             }
             if (first) {
