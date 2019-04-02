@@ -37,105 +37,89 @@ final string ENCODING_CHARSET = "utf-8";
 
 http:Client clientEP = new("https://support.wso2.com");
 
-function getAllIssues(string product, string labels, string authKey) returns (json[]) {
+function getIssueMetaDetails(string product, string labels, string authKey) returns (json) {
     http:Request req = new;
 
     req.addHeader("Authorization", "Basic " + authKey);
 
     string reqURL = "";
 
-    reqURL = "/jira/rest/api/latest/search";
+    reqURL = "/jira/rest/api/2/search";
 
+    json|error totalIssueCountJson = getTotalIssueCount(reqURL, product, labels, req);
+    json|error openIssueCountJson = getOpenIssueCount(reqURL, product, labels, req);
 
-    json[]|error issueDetailsJson = getissuesFromJira(reqURL, product, labels, req);
+    json issuesMetaDetails = {};
 
-
-    json[] issuesJson = [];
-    int jiraIssueIterator = 0;
-    int i = 0;
-    if (issueDetailsJson is json[]) {
-
-        int numberOfissues = issueDetailsJson.length();
-
-        while (jiraIssueIterator < numberOfissues) {
-
-            issuesJson[i] = {};
-            issuesJson[i].issueTitle = issueDetailsJson[jiraIssueIterator].key;
-            issuesJson[i].label = issueDetailsJson[jiraIssueIterator].fields.labels;
-            issuesJson[i].status = issueDetailsJson[jiraIssueIterator].fields.status.name;
-            jiraIssueIterator = jiraIssueIterator + 1;
-            i = i + 1;
-
-        }
-        return issuesJson;
+    if (totalIssueCountJson is json && openIssueCountJson is json ) {
+        issuesMetaDetails.totalIssues = totalIssueCountJson.total;
+        issuesMetaDetails.openIssues = openIssueCountJson.total;
+        return issuesMetaDetails;
     } else {
-        log:printError("Error converting response payload to json for issues in product");
+        log:printError("Error converting response payload to json for meta details in issues.");
     }
-    return issuesJson;
+    return issuesMetaDetails;
 }
 
-function getissuesFromJira(string path, string product, string labels, http:Request req) returns json[]|error {
+function getTotalIssueCount(string path, string product, string labels, http:Request req) returns json|error {
     int page = 0;
-    json[] finalIssueArray = [];
     json respJson;
-    json issuesArray;
-
-    var searchPath = path + "&startAt=" + page + "&maxResults=" + 50;
+    json issuesMetaDetails = [];
 
     // prepare jql
     string jql = "project=" + product + " and labels in (" + labels + ")";
 
+
     // creating array of query parameters key & values
     string[] queryParamNames = ["jql", "startAt", "maxResults"];
-    string[] queryParamValues = [jql, intToString(page), intToString((page + 50))];
+    string[] queryParamValues = [jql, "0", "0"];
 
     string queryUrl = prepareQueryUrl(path, queryParamNames, queryParamValues);
 
     var response = clientEP->get(queryUrl, message = req);
 
     if (response is http:Response) {
-        respJson = check response.getJsonPayload();
-        issuesArray = respJson.issues;
 
-        // If JIRA issues exist
-        if issuesArray.length() > 0 {
-            finalIssueArray = check json[].convert(issuesArray);
-            page = page + 50;
-        } else {
-            return finalIssueArray;
-        }
+        issuesMetaDetails = check response.getJsonPayload();
 
-        int|error max = int.convert(respJson.maxResults.toString());
-        int|error total = int.convert(respJson.total.toString());
-
-        if (total is int && max is int) {
-            if (total > max) {
-                http:Response response2 = check clientEP->get(path + "&startAt=" + page
-                        + "&maxResults=" + (page + 50), message = req);
-                respJson = check response2.getJsonPayload();
-                issuesArray = respJson.issues;
-                if (issuesArray.length() > 0) {
-                    var z = check json[].convert(issuesArray);
-                    foreach var issue in z {
-                        finalIssueArray[finalIssueArray.length()] = issue;
-                    }
-                    page = page + 50;
-                } else {
-                    return finalIssueArray;
-                }
-            }
-        }
-        return finalIssueArray;
+        return issuesMetaDetails;
 
 
     } else {
         log:printError("Error occured while retrieving data from JIRA API", err = response);
     }
-    return finalIssueArray;
+    return issuesMetaDetails;
+}
+
+function getOpenIssueCount(string path, string product, string labels, http:Request req) returns json|error {
+    int page = 0;
+    json respJson;
+    json issuesMetaDetails = [];
+
+    // prepare jql to query open issues
+    string jql = "project=" + product + " and labels in (" + labels + ") " +
+        "and resolution not in (Answered,Completed,Done,Duplicate,Fixed)";
+
+    // creating array of query parameters key & values
+    string[] queryParamNames = ["jql", "startAt", "maxResults"];
+    string[] queryParamValues = [jql, "0", "0"];
+
+    string queryUrl = prepareQueryUrl(path, queryParamNames, queryParamValues);
+
+    var response = clientEP->get(queryUrl, message = req);
+
+    if (response is http:Response) {
+
+        issuesMetaDetails = check response.getJsonPayload();
+        return issuesMetaDetails;
+    } else {
+        log:printError("Error occured while retrieving data from JIRA API", err = response);
+    }
+    return issuesMetaDetails;
 }
 
 # Returns the prepared URL with encoded query.
-# + paths - An array of paths prefixes
+# + paths - A string of path
 # + queryParamNames - An array of query param names
 # + queryParamValues - An array of query param values
 # + return - The prepared URL with encoded query
@@ -171,12 +155,4 @@ function prepareQueryUrl(string paths, string[] queryParamNames, string[] queryP
     }
 
     return url;
-}
-
-function intToString(int num) returns string {
-    string|error str = string.convert(num);
-    if (str is string) {
-        return str;
-    }
-    return EMPTY_STRING;
 }

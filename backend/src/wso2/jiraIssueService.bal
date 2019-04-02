@@ -41,7 +41,7 @@ service jiraIssueService on httpListener {
         // Find the requested order from the map and retrieve it in JSON format.
         time:Time startTime = time:currentTime();
         http:Response response = new;
-        json[] issuesJson = [];
+        json[] issueCounts = [];
         int readArrayIndex = 0;
         json[] partialIssueJson = [];
 
@@ -51,14 +51,8 @@ service jiraIssueService on httpListener {
 
         if (labelsString is string){
 
-        json[] intermediantIssueJson = getAllIssues(untaint productName, untaint labelsString, GENERAL_AUTH_KEY);
-
-        foreach var item in intermediantIssueJson {
-            issuesJson[issuesJson.length()] = item;
-        }
-
-
-        response.setJsonPayload(untaint issuesJson);
+        json issueMetaDetails = getIssueMetaDetails(untaint productName, untaint labelsString, GENERAL_AUTH_KEY);
+        response.setJsonPayload(untaint issueMetaDetails);
         }
         time:Time endTime = time:currentTime();
         int totalTime = endTime.time - startTime.time;
