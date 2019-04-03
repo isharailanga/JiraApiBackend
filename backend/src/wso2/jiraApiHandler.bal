@@ -17,7 +17,6 @@
 import ballerina/http;
 import ballerina/log;
 import ballerina/io;
-import ballerina/mime;
 
 # Constant field `QUESTION_MARK`. Holds the value of "?".
 final string QUESTION_MARK = "?";
@@ -56,7 +55,7 @@ function getIssueMetaDetails(string product, string labels, string authKey) retu
         issuesMetaDetails.openIssues = openIssueCountJson.total;
         return issuesMetaDetails;
     } else {
-        log:printError("Error converting response payload to json for meta details in issues.");
+        log:printError("Error converting response payload to json for JIRA issue count.");
     }
     return issuesMetaDetails;
 }

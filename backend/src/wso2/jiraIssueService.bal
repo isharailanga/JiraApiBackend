@@ -26,6 +26,7 @@ task:Timer? timer = ();
 
 listener http:Listener httpListener = new(9095);
 string GENERAL_AUTH_KEY = config:getAsString("GENERAL_AUTH_KEY");
+string GITHUB_AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
 
 @http:ServiceConfig {
     basePath: "/jiraIssues"
@@ -37,23 +38,19 @@ service jiraIssueService on httpListener {
         methods: ["GET"],
         path: "/product/{productName}"
     }
-    resource function retrieveAllIssuesByProduct (http:Caller caller, http:Request request, string productName) {
+    resource function retrieveAllIssuesByProduct(http:Caller caller, http:Request request, string productName) {
         // Find the requested order from the map and retrieve it in JSON format.
         time:Time startTime = time:currentTime();
         http:Response response = new;
-        json[] issueCounts = [];
-        int readArrayIndex = 0;
-        json[] partialIssueJson = [];
 
         map<string> filterValues = request.getQueryParams();
         string? labelsString = filterValues["labels"];
 
-
-        if (labelsString is string){
-
-        json issueMetaDetails = getIssueMetaDetails(untaint productName, untaint labelsString, GENERAL_AUTH_KEY);
-        response.setJsonPayload(untaint issueMetaDetails);
+        if (labelsString is string) {
+            json issueMetaDetails = getIssueMetaDetails(untaint productName, untaint labelsString, GENERAL_AUTH_KEY);
+            response.setJsonPayload(untaint issueMetaDetails);
         }
+
         time:Time endTime = time:currentTime();
         int totalTime = endTime.time - startTime.time;
         // Send response to the client.
@@ -62,6 +59,28 @@ service jiraIssueService on httpListener {
             log:printError("Error sending response", err = result);
         }
     }
+
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/versions/{productName}"
+    }
+    resource function retrieveProductVersions(http:Caller caller, http:Request request, string productName) {
+        // Find the requested order from the map and retrieve it in JSON format.
+        time:Time startTime = time:currentTime();
+        http:Response response = new;
+
+        json issuesJson = getProductVersions(untaint productName, GITHUB_AUTH_KEY);
+
+        response.setJsonPayload(untaint issuesJson);
+        time:Time endTime = time:currentTime();
+        int totalTime = endTime.time - startTime.time;
+        // Send response to the client.
+        var result = caller->respond(response);
+        if (result is error) {
+            log:printError("Error sending response", err = result);
+        }
+    }
+
 }
 
 
