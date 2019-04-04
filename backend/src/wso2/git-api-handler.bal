@@ -23,11 +23,12 @@ final string GIT_REPO_OWNER = "wso2";
 
 http:Client gitClientEP = new("https://api.github.com");
 
-function getProductVersions(string product, string authKey) returns (json) {
+function getProductVersions(string productName, string authKey) returns (json) {
     http:Request req = new;
     req.addHeader("Authorization", "token " + authKey);
     json versions = [];
 
+    string product = mapToProductJiraProject(productName);
     string productRepo = mapProductToRepo(product);
 
     string reqURL = "/repos" + "/" + GIT_REPO_OWNER + "/" + productRepo + "/milestones?state=active";

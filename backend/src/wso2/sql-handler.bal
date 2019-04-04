@@ -55,10 +55,10 @@ function getAllProductNames() returns (json) {
 }
 
 function getPendingDocTasks(string product) returns (json) {
-    string productName = mapJiraProjectToProduct(product);
+    //string productName = mapJiraProjectToProduct(product);
     string sqlQuery = "SELECT COUNT(PR_ID) AS mprCount FROM PRODUCT_PRS WHERE DOC_STATUS IN (0,1,2,3,4) AND"+
         " PRODUCT_ID=(SELECT PRODUCT_ID FROM PRODUCT WHERE PRODUCT_NAME = ? )";
-    var prCount = productTable->select(sqlQuery, (),productName);
+    var prCount = productTable->select(sqlQuery, (),product);
     if (prCount is table< record {} >) {
         var count = json.convert(prCount);
         if (count is json) {
@@ -89,4 +89,23 @@ function mapJiraProjectToProduct(string project) returns (string) {
         product = "Cloud";
     }
     return product;
+}
+
+//This function will map the given JIRA project to the product name
+function mapToProductJiraProject(string product) returns (string) {
+    string project = "";
+    if (product.equalsIgnoreCase("API Management")) {
+        project = "APIMINTERNAL";
+    } else if (product.equalsIgnoreCase("IAM")) {
+        project = "IAMINTERNAL";
+    } else if (product.equalsIgnoreCase("Integration")) {
+        project = "EIINTERNAL";
+    } else if (product.equalsIgnoreCase("Analytics")) {
+        project = "ANALYTICSINTERNAL";
+    } else if (product.equalsIgnoreCase("Financial Solutions")) {
+        project = "OBINTERNAL";
+    } else if (product.equalsIgnoreCase("Cloud")) {
+        project = "CLOUDINTERNAL";
+    }
+    return project;
 }

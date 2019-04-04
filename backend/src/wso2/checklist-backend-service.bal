@@ -69,9 +69,10 @@ service jiraIssueService on httpListener {
         time:Time startTime = time:currentTime();
         http:Response response = new;
 
-        json issuesJson = getProductVersions(untaint productName, GITHUB_AUTH_KEY);
+        json versionArr = getProductVersions(untaint productName, GITHUB_AUTH_KEY);
+        json versions = { versions: versionArr };
 
-        response.setJsonPayload(untaint issuesJson);
+        response.setJsonPayload(untaint versions);
         time:Time endTime = time:currentTime();
         int totalTime = endTime.time - startTime.time;
         // Send response to the client.
@@ -90,7 +91,8 @@ service jiraIssueService on httpListener {
         time:Time startTime = time:currentTime();
         http:Response response = new;
 
-        json productNames = getAllProductNames();
+        json productNamesArr = getAllProductNames();
+        json productNames = {products:productNamesArr};
         response.setJsonPayload(untaint productNames);
 
         time:Time endTime = time:currentTime();

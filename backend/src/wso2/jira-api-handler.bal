@@ -36,15 +36,14 @@ final string ENCODING_CHARSET = "utf-8";
 
 http:Client jiraClientEP = new("https://support.wso2.com");
 
-function getIssueMetaDetails(string product, string labels, string authKey) returns (json) {
+function getIssueMetaDetails(string productName, string labels, string authKey) returns (json) {
     http:Request req = new;
-
     req.addHeader("Authorization", "Basic " + authKey);
 
     string reqURL = "";
-
     reqURL = "/jira/rest/api/2/search";
 
+    string product = mapToProductJiraProject(productName);
     json|error totalIssueCountJson = getTotalIssueCount(reqURL, product, labels, req);
     json|error openIssueCountJson = getOpenIssueCount(reqURL, product, labels, req);
 
