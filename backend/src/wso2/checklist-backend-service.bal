@@ -81,6 +81,25 @@ service jiraIssueService on httpListener {
         }
     }
 
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/productnames"
+    }
+    resource function retrieveProductNames(http:Caller caller, http:Request request) {
+        // Find the requested order from the map and retrieve it in JSON format.
+        time:Time startTime = time:currentTime();
+        http:Response response = new;
+
+        json productNames = getAllProductNames();
+        response.setJsonPayload(untaint productNames);
+
+        time:Time endTime = time:currentTime();
+        int totalTime = endTime.time - startTime.time;
+        // Send response to the client.
+        var result = caller->respond(response);
+        if (result is error) {
+            log:printError("Error sending response", err = result);
+        }
+    }
+
 }
-
-
