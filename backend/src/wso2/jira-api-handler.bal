@@ -34,7 +34,7 @@ final string AMPERSAND = "&";
 # Constant field `ENCODING_CHARSET`. Holds the value for the encoding charset.
 final string ENCODING_CHARSET = "utf-8";
 
-http:Client clientEP = new("https://support.wso2.com");
+http:Client jiraClientEP = new("https://support.wso2.com");
 
 function getIssueMetaDetails(string product, string labels, string authKey) returns (json) {
     http:Request req = new;
@@ -48,9 +48,18 @@ function getIssueMetaDetails(string product, string labels, string authKey) retu
     json|error totalIssueCountJson = getTotalIssueCount(reqURL, product, labels, req);
     json|error openIssueCountJson = getOpenIssueCount(reqURL, product, labels, req);
 
-    json issuesMetaDetails = {};
+    json issuesMetaDetails = {
+        totalIssues: 0,
+        openIssues: 0
+    };
 
-    if (totalIssueCountJson is json && openIssueCountJson is json ) {
+    if (totalIssueCountJson is json && openIssueCountJson is json) {
+        if (totalIssueCountJson.total == null) {
+            totalIssueCountJson.total = 0;
+        }
+        if (openIssueCountJson.total == null) {
+            openIssueCountJson.total = 0;
+        }
         issuesMetaDetails.totalIssues = totalIssueCountJson.total;
         issuesMetaDetails.openIssues = openIssueCountJson.total;
         return issuesMetaDetails;
@@ -75,15 +84,11 @@ function getTotalIssueCount(string path, string product, string labels, http:Req
 
     string queryUrl = prepareQueryUrl(path, queryParamNames, queryParamValues);
 
-    var response = clientEP->get(queryUrl, message = req);
+    var response = jiraClientEP->get(queryUrl, message = req);
 
     if (response is http:Response) {
-
         issuesMetaDetails = check response.getJsonPayload();
-
         return issuesMetaDetails;
-
-
     } else {
         log:printError("Error occured while retrieving data from JIRA API", err = response);
     }
@@ -105,7 +110,7 @@ function getOpenIssueCount(string path, string product, string labels, http:Requ
 
     string queryUrl = prepareQueryUrl(path, queryParamNames, queryParamValues);
 
-    var response = clientEP->get(queryUrl, message = req);
+    var response = jiraClientEP->get(queryUrl, message = req);
 
     if (response is http:Response) {
 

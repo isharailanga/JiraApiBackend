@@ -37,18 +37,56 @@ function getAllProductNames() returns (json) {
         var productNamesJson = json.convert(productNames);
         if (productNamesJson is json) {
 
-            int i=0;
-            while(i<productNamesJson.length()){
-                    productNamesJson[i]=productNamesJson[i].PRODUCT_NAME;
-                    i=i+1;
+            int i = 0;
+            while (i < productNamesJson.length()) {
+                productNamesJson[i] = productNamesJson[i].PRODUCT_NAME;
+                i = i + 1;
             }
 
             return productNamesJson;
         } else {
-            log:printError("Error occured while converting the retreaved product names to json", err = productNamesJson)
+            log:printError("Error occured while converting the retrieved product names to json.", err = productNamesJson
+            )
             ;
         }
     } else {
-        log:printError("Error occured while retreaving the product names from Database", err = productNames);
+        log:printError("Error occured while retrieving the product names from Database.", err = productNames);
     }
+}
+
+function getPendingDocTasks(string product) returns (json) {
+    string productName = mapJiraProjectToProduct(product);
+    string sqlQuery = "SELECT COUNT(PR_ID) AS mprCount FROM PRODUCT_PRS WHERE DOC_STATUS IN (0,1,2,3,4) AND"+
+        " PRODUCT_ID=(SELECT PRODUCT_ID FROM PRODUCT WHERE PRODUCT_NAME = ? )";
+    var prCount = productTable->select(sqlQuery, (),productName);
+    if (prCount is table< record {} >) {
+        var count = json.convert(prCount);
+        if (count is json) {
+            return count[0];
+        } else {
+            log:printError("Error occured while converting the retrieved merged PR count to json.",
+                err = count);
+        }
+    } else {
+        log:printError("Error occured while retrieving the merged PR count from Database.", err = prCount);
+    }
+}
+
+//This function will map the given JIRA project to the product name
+function mapJiraProjectToProduct(string project) returns (string) {
+    string product = "";
+    if (project.equalsIgnoreCase("APIMINTERNAL")) {
+        product = "API Management";
+    } else if (project.equalsIgnoreCase("IAMINTERNAL")) {
+        product = "IAM";
+    } else if (project.equalsIgnoreCase("EIINTERNAL")) {
+        product = "Integration";
+    } else if (project.equalsIgnoreCase("ANALYTICSINTERNAL")) {
+        product = "Analytics";
+    } else if (project.equalsIgnoreCase("OBINTERNAL")) {
+        product = "Financial Solutions";
+    } else if (project.equalsIgnoreCase("CLOUDINTERNAL")) {
+        product = "Cloud";
+    }
+    return product;
 }

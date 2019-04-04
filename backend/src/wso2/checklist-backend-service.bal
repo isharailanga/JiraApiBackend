@@ -25,7 +25,7 @@ import ballerina/config;
 task:Timer? timer = ();
 
 listener http:Listener httpListener = new(9095);
-string GENERAL_AUTH_KEY = config:getAsString("GENERAL_AUTH_KEY");
+string JIRA_AUTH_KEY = config:getAsString("JIRA_AUTH_KEY");
 string GITHUB_AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
 
 @http:ServiceConfig {
@@ -47,7 +47,7 @@ service jiraIssueService on httpListener {
         string? labelsString = filterValues["labels"];
 
         if (labelsString is string) {
-            json issueMetaDetails = getIssueMetaDetails(untaint productName, untaint labelsString, GENERAL_AUTH_KEY);
+            json issueMetaDetails = getIssueMetaDetails(untaint productName, untaint labelsString, JIRA_AUTH_KEY);
             response.setJsonPayload(untaint issueMetaDetails);
         }
 
@@ -92,6 +92,28 @@ service jiraIssueService on httpListener {
 
         json productNames = getAllProductNames();
         response.setJsonPayload(untaint productNames);
+
+        time:Time endTime = time:currentTime();
+        int totalTime = endTime.time - startTime.time;
+        // Send response to the client.
+        var result = caller->respond(response);
+        if (result is error) {
+            log:printError("Error sending response", err = result);
+        }
+    }
+
+
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/mprcount/{productName}"
+    }
+    resource function getPendingDocTaskCount(http:Caller caller, http:Request request, string productName) {
+        // Find the requested order from the map and retrieve it in JSON format.
+        time:Time startTime = time:currentTime();
+        http:Response response = new;
+
+        json count = getPendingDocTasks(productName);
+        response.setJsonPayload(untaint count);
 
         time:Time endTime = time:currentTime();
         int totalTime = endTime.time - startTime.time;
