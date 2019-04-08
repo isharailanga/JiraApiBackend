@@ -56,19 +56,44 @@ function getAllProductNames() returns (json) {
 
 function getPendingDocTasks(string product) returns (json) {
     //string productName = mapJiraProjectToProduct(product);
-    string sqlQuery = "SELECT COUNT(PR_ID) AS mprCount FROM PRODUCT_PRS WHERE DOC_STATUS IN (0,1,2,3,4) AND"+
+    string sqlQuery = "SELECT COUNT(PR_ID) AS mprCount FROM PRODUCT_PRS WHERE DOC_STATUS IN (0,1,2,3,4) AND" +
         " PRODUCT_ID=(SELECT PRODUCT_ID FROM PRODUCT WHERE PRODUCT_NAME = ? )";
-    var prCount = productTable->select(sqlQuery, (),product);
+    var prCount = productTable->select(sqlQuery, (), product);
     if (prCount is table< record {} >) {
         var count = json.convert(prCount);
         if (count is json) {
             return count[0];
         } else {
-            log:printError("Error occured while converting the retrieved merged PR count to json.",
+            log:printError("Error occured while converting the retrieved " + product + " merged PR count to json.",
                 err = count);
         }
     } else {
-        log:printError("Error occured while retrieving the merged PR count from Database.", err = prCount);
+        log:printError("Error occured while retrieving the " + product + " merged PR count from database.", err =
+            prCount);
+    }
+}
+
+function getDependencySummary(string product) returns (json) {
+    //string productName = mapJiraProjectToProduct(product);
+    string sqlQuery = "SELECT CAST((SUM(DEPENDENCY_SUMMARY.NEXT_VERSION_AVAILABLE) +
+		SUM(DEPENDENCY_SUMMARY.NEXT_INCREMENTAL_AVAILABLE) +
+        SUM(DEPENDENCY_SUMMARY.NEXT_MINOR_AVAILABLE)) AS SIGNED) AS dependencySummary
+        FROM DEPENDENCY_SUMMARY,PRODUCT_REPOS,PRODUCT
+        WHERE PRODUCT.PRODUCT_NAME=? AND PRODUCT.PRODUCT_ID=PRODUCT_REPOS.PRODUCT_ID AND
+            PRODUCT_REPOS.REPO_ID = DEPENDENCY_SUMMARY.REPO_ID;";
+    var summary = productTable->select(sqlQuery, (), product);
+
+    if (summary is table< record {} >) {
+        var count = json.convert(summary);
+        if (count is json) {
+            return count[0];
+        } else {
+            log:printError("Error occured while converting the retrieved " + product + " dependency summary to json.",
+                err = count);
+        }
+    } else {
+        log:printError("Error occured while retrieving the " + product + " dependency summary from database.", err =
+            summary);
     }
 }
 

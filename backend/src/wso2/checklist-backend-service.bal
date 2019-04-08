@@ -126,4 +126,25 @@ service jiraIssueService on httpListener {
         }
     }
 
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/dependency/{productName}"
+    }
+    resource function getDependencySummaryDetails(http:Caller caller, http:Request request, string productName) {
+        // Find the requested order from the map and retrieve it in JSON format.
+        time:Time startTime = time:currentTime();
+        http:Response response = new;
+
+        json count = getDependencySummary(productName);
+        response.setJsonPayload(untaint count);
+
+        time:Time endTime = time:currentTime();
+        int totalTime = endTime.time - startTime.time;
+        // Send response to the client.
+        var result = caller->respond(response);
+        if (result is error) {
+            log:printError("Error sending response", err = result);
+        }
+    }
+
 }
