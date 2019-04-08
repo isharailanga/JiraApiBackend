@@ -97,6 +97,33 @@ function getDependencySummary(string product) returns (json) {
     }
 }
 
+function getLineCoverage(string product) returns (json) {
+    //string productName = mapJiraProjectToProduct(product);
+    string sqlQuery = "SELECT FORMAT ( (((TOTAL_LINES-MISSED_LINES)/TOTAL_LINES)*100) , 2  ) AS lineCoverage
+                        FROM CODE_COVERAGE_SUMMARY,PRODUCT
+                        WHERE CODE_COVERAGE_SUMMARY.PRODUCT_ID=PRODUCT.PRODUCT_ID
+                        AND PRODUCT_NAME = ? AND
+                        CODE_COVERAGE_SUMMARY.DATE LIKE
+                        CONCAT('%', (SELECT MAX(DISTINCT CAST(DATE AS DATE)) AS DATE
+                                    FROM CODE_COVERAGE_SUMMARY
+                                    ORDER BY DATE DESC), '%');";
+
+    var coverage = productTable->select(sqlQuery, (), product);
+
+    if (coverage is table< record {} >) {
+        var count = json.convert(coverage);
+        if (count is json) {
+            return count[0];
+        } else {
+            log:printError("Error occured while converting the retrieved " + product + " line coverage to json.",
+                err = count);
+        }
+    } else {
+        log:printError("Error occured while retrieving the " + product + " line coverage from database.", err =
+            coverage);
+    }
+}
+
 //This function will map the given JIRA project to the product name
 function mapJiraProjectToProduct(string project) returns (string) {
     string product = "";
