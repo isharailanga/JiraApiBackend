@@ -19,9 +19,7 @@ import ballerina/log;
 import ballerina/io;
 import ballerina/mime;
 
-final string GIT_REPO_OWNER = "wso2";
-
-http:Client gitClientEP = new("https://api.github.com");
+http:Client gitClientEP = new(GIT_REST_API);
 
 function getProductVersions(string productName) returns (json) {
     http:Request req = new;
@@ -123,15 +121,15 @@ public function getGitIssuesByLabel(string repo, string milestoneNo, string labe
 //This function will map the given JIRA project to the GIT product-repo name
 function mapProductToRepo(string product) returns (string) {
     string repo = "";
-    if (product.equalsIgnoreCase("API Management")) {
+    if (product.equalsIgnoreCase(PRODUCT_APIM)) {
         repo = "product-apim";
-    } else if (product.equalsIgnoreCase("IAM")) {
+    } else if (product.equalsIgnoreCase(PRODUCT_IS)) {
         repo = "product-is";
-    } else if (product.equalsIgnoreCase("Integration")) {
+    } else if (product.equalsIgnoreCase(PRODUCT_EI)) {
         repo = "product-ei";
     } else if (product.equalsIgnoreCase("Analytics")) {
         repo = "product-sp";
-    } else if (product.equalsIgnoreCase("Financial Solutions")) {
+    } else if (product.equalsIgnoreCase(PRODUCT_OB)) {
         repo = "financial-open-banking";
     } else if (product.equalsIgnoreCase("Cloud")) {
         repo = "cloud";

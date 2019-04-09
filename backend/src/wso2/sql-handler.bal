@@ -20,7 +20,7 @@ import ballerina/log;
 import ballerina/time;
 import ballerina/config;
 
-mysql:Client productTable = new({
+mysql:Client dashboardDB = new({
         host: config:getAsString("DB_HOST"),
         port: config:getAsInt("DB_PORT"),
         name: config:getAsString("DB_NAME"),
@@ -32,7 +32,7 @@ mysql:Client productTable = new({
 
 
 function getAllProductNames() returns (json) {
-    var productNames = productTable->select("SELECT PRODUCT_NAME FROM PRODUCT", ());
+    var productNames = dashboardDB->select("SELECT PRODUCT_NAME FROM PRODUCT", ());
     if (productNames is table< record {} >) {
         var productNamesJson = json.convert(productNames);
         if (productNamesJson is json) {
@@ -55,10 +55,9 @@ function getAllProductNames() returns (json) {
 }
 
 function getPendingDocTasks(string product) returns (json) {
-    //string productName = mapJiraProjectToProduct(product);
     string sqlQuery = "SELECT COUNT(PR_ID) AS mprCount FROM PRODUCT_PRS WHERE DOC_STATUS IN (0,1,2,3,4) AND" +
         " PRODUCT_ID=(SELECT PRODUCT_ID FROM PRODUCT WHERE PRODUCT_NAME = ? )";
-    var prCount = productTable->select(sqlQuery, (), product);
+    var prCount = dashboardDB->select(sqlQuery, (), product);
     if (prCount is table< record {} >) {
         var count = json.convert(prCount);
         if (count is json) {
@@ -74,14 +73,13 @@ function getPendingDocTasks(string product) returns (json) {
 }
 
 function getDependencySummary(string product) returns (json) {
-    //string productName = mapJiraProjectToProduct(product);
     string sqlQuery = "SELECT CAST((SUM(DEPENDENCY_SUMMARY.NEXT_VERSION_AVAILABLE) +
 		SUM(DEPENDENCY_SUMMARY.NEXT_INCREMENTAL_AVAILABLE) +
         SUM(DEPENDENCY_SUMMARY.NEXT_MINOR_AVAILABLE)) AS SIGNED) AS dependencySummary
         FROM DEPENDENCY_SUMMARY,PRODUCT_REPOS,PRODUCT
         WHERE PRODUCT.PRODUCT_NAME=? AND PRODUCT.PRODUCT_ID=PRODUCT_REPOS.PRODUCT_ID AND
             PRODUCT_REPOS.REPO_ID = DEPENDENCY_SUMMARY.REPO_ID;";
-    var summary = productTable->select(sqlQuery, (), product);
+    var summary = dashboardDB->select(sqlQuery, (), product);
 
     if (summary is table< record {} >) {
         var count = json.convert(summary);
@@ -98,7 +96,6 @@ function getDependencySummary(string product) returns (json) {
 }
 
 function getLineCoverage(string product) returns (json) {
-    //string productName = mapJiraProjectToProduct(product);
     string sqlQuery = "SELECT FORMAT ( (((TOTAL_LINES-MISSED_LINES)/TOTAL_LINES)*100) , 2  ) AS lineCoverage
                         FROM CODE_COVERAGE_SUMMARY,PRODUCT
                         WHERE CODE_COVERAGE_SUMMARY.PRODUCT_ID=PRODUCT.PRODUCT_ID
@@ -108,7 +105,7 @@ function getLineCoverage(string product) returns (json) {
                                     FROM CODE_COVERAGE_SUMMARY
                                     ORDER BY DATE DESC), '%');";
 
-    var coverage = productTable->select(sqlQuery, (), product);
+    var coverage = dashboardDB->select(sqlQuery, (), product);
 
     if (coverage is table< record {} >) {
         var count = json.convert(coverage);
@@ -127,16 +124,16 @@ function getLineCoverage(string product) returns (json) {
 //This function will map the given JIRA project to the product name
 function mapJiraProjectToProduct(string project) returns (string) {
     string product = "";
-    if (project.equalsIgnoreCase("APIMINTERNAL")) {
-        product = "API Management";
-    } else if (project.equalsIgnoreCase("IAMINTERNAL")) {
-        product = "IAM";
-    } else if (project.equalsIgnoreCase("EIINTERNAL")) {
-        product = "Integration";
+    if (project.equalsIgnoreCase(JIRA_APIM)) {
+        product = PRODUCT_APIM;
+    } else if (project.equalsIgnoreCase(JIRA_IS)) {
+        product = PRODUCT_IS;
+    } else if (project.equalsIgnoreCase(JIRA_EI)) {
+        product = PRODUCT_EI;
     } else if (project.equalsIgnoreCase("ANALYTICSINTERNAL")) {
         product = "Analytics";
-    } else if (project.equalsIgnoreCase("OBINTERNAL")) {
-        product = "Financial Solutions";
+    } else if (project.equalsIgnoreCase(JIRA_OB)) {
+        product = PRODUCT_OB;
     } else if (project.equalsIgnoreCase("CLOUDINTERNAL")) {
         product = "Cloud";
     }
@@ -146,16 +143,16 @@ function mapJiraProjectToProduct(string project) returns (string) {
 //This function will map the given JIRA project to the product name
 function mapToProductJiraProject(string product) returns (string) {
     string project = "";
-    if (product.equalsIgnoreCase("API Management")) {
-        project = "APIMINTERNAL";
-    } else if (product.equalsIgnoreCase("IAM")) {
-        project = "IAMINTERNAL";
-    } else if (product.equalsIgnoreCase("Integration")) {
-        project = "EIINTERNAL";
+    if (product.equalsIgnoreCase(PRODUCT_APIM)) {
+        project = JIRA_APIM;
+    } else if (product.equalsIgnoreCase(PRODUCT_IS)) {
+        project = JIRA_IS;
+    } else if (product.equalsIgnoreCase(PRODUCT_EI)) {
+        project = JIRA_EI;
     } else if (product.equalsIgnoreCase("Analytics")) {
         project = "ANALYTICSINTERNAL";
-    } else if (product.equalsIgnoreCase("Financial Solutions")) {
-        project = "OBINTERNAL";
+    } else if (product.equalsIgnoreCase(PRODUCT_OB)) {
+        project = JIRA_OB;
     } else if (product.equalsIgnoreCase("Cloud")) {
         project = "CLOUDINTERNAL";
     }

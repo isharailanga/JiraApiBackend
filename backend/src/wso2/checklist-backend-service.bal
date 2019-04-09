@@ -22,11 +22,7 @@ import ballerina/time;
 import ballerina/task;
 import ballerina/config;
 
-task:Timer? timer = ();
-
 listener http:Listener httpListener = new(9095);
-final string JIRA_AUTH_KEY = config:getAsString("JIRA_AUTH_KEY");
-final string GITHUB_AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
 
 @http:ServiceConfig {
     basePath: "/checklist"
@@ -39,8 +35,6 @@ service jiraIssueService on httpListener {
         path: "/jiraIssues/{productName}"
     }
     resource function retrieveAllIssuesByProduct(http:Caller caller, http:Request request, string productName) {
-        // Find the requested order from the map and retrieve it in JSON format.
-        time:Time startTime = time:currentTime();
         http:Response response = new;
 
         map<string> filterValues = request.getQueryParams();
@@ -51,9 +45,6 @@ service jiraIssueService on httpListener {
             response.setJsonPayload(untaint issueMetaDetails);
         }
 
-        time:Time endTime = time:currentTime();
-        int totalTime = endTime.time - startTime.time;
-        // Send response to the client.
         var result = caller->respond(response);
         if (result is error) {
             log:printError("Error sending response", err = result);
@@ -65,17 +56,13 @@ service jiraIssueService on httpListener {
         path: "/versions/{productName}"
     }
     resource function retrieveProductVersions(http:Caller caller, http:Request request, string productName) {
-        // Find the requested order from the map and retrieve it in JSON format.
-        time:Time startTime = time:currentTime();
         http:Response response = new;
 
         json versionArr = getProductVersions(untaint productName);
         json versions = { versions: versionArr };
 
         response.setJsonPayload(untaint versions);
-        time:Time endTime = time:currentTime();
-        int totalTime = endTime.time - startTime.time;
-        // Send response to the client.
+
         var result = caller->respond(response);
         if (result is error) {
             log:printError("Error sending response", err = result);
@@ -87,39 +74,30 @@ service jiraIssueService on httpListener {
         path: "/productnames"
     }
     resource function retrieveProductNames(http:Caller caller, http:Request request) {
-        // Find the requested order from the map and retrieve it in JSON format.
-        time:Time startTime = time:currentTime();
+
         http:Response response = new;
 
         json productNamesArr = getAllProductNames();
         json productNames = {products:productNamesArr};
         response.setJsonPayload(untaint productNames);
 
-        time:Time endTime = time:currentTime();
-        int totalTime = endTime.time - startTime.time;
-        // Send response to the client.
         var result = caller->respond(response);
         if (result is error) {
             log:printError("Error sending response", err = result);
         }
     }
 
-
     @http:ResourceConfig {
         methods: ["GET"],
         path: "/mprcount/{productName}"
     }
     resource function getPendingDocTaskCount(http:Caller caller, http:Request request, string productName) {
-        // Find the requested order from the map and retrieve it in JSON format.
-        time:Time startTime = time:currentTime();
+
         http:Response response = new;
 
         json count = getPendingDocTasks(productName);
         response.setJsonPayload(untaint count);
 
-        time:Time endTime = time:currentTime();
-        int totalTime = endTime.time - startTime.time;
-        // Send response to the client.
         var result = caller->respond(response);
         if (result is error) {
             log:printError("Error sending response", err = result);
@@ -131,16 +109,11 @@ service jiraIssueService on httpListener {
         path: "/dependency/{productName}"
     }
     resource function getDependencySummaryDetails(http:Caller caller, http:Request request, string productName) {
-        // Find the requested order from the map and retrieve it in JSON format.
-        time:Time startTime = time:currentTime();
         http:Response response = new;
 
         json count = getDependencySummary(productName);
         response.setJsonPayload(untaint count);
 
-        time:Time endTime = time:currentTime();
-        int totalTime = endTime.time - startTime.time;
-        // Send response to the client.
         var result = caller->respond(response);
         if (result is error) {
             log:printError("Error sending response", err = result);
@@ -152,16 +125,11 @@ service jiraIssueService on httpListener {
         path: "/linecoverage/{productName}"
     }
     resource function getProductLineCoverage(http:Caller caller, http:Request request, string productName) {
-        // Find the requested order from the map and retrieve it in JSON format.
-        time:Time startTime = time:currentTime();
         http:Response response = new;
 
         json count = getLineCoverage(productName);
         response.setJsonPayload(untaint count);
 
-        time:Time endTime = time:currentTime();
-        int totalTime = endTime.time - startTime.time;
-        // Send response to the client.
         var result = caller->respond(response);
         if (result is error) {
             log:printError("Error sending response", err = result);
@@ -173,8 +141,6 @@ service jiraIssueService on httpListener {
         path: "/gitIssues/{productName}"
     }
     resource function getGitIssues(http:Caller caller, http:Request request, string productName) {
-        // Find the requested order from the map and retrieve it in JSON format.
-        time:Time startTime = time:currentTime();
         http:Response response = new;
 
         map<string> filterValues = request.getQueryParams();
@@ -185,9 +151,6 @@ service jiraIssueService on httpListener {
             response.setJsonPayload(untaint count);
         }
 
-        time:Time endTime = time:currentTime();
-        int totalTime = endTime.time - startTime.time;
-        // Send response to the client.
         var result = caller->respond(response);
         if (result is error) {
             log:printError("Error sending response", err = result);

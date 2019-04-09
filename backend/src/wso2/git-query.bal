@@ -15,15 +15,8 @@
 // under the License.
 
 import ballerina/http;
-import ballerina/log;
-import ballerina/io;
-import ballerina/mime;
 
-http:Client gitGraphQLEP = new("https://api.github.com/graphql");
-
-final string L1_LABEL = "Severity/Blocker";
-final string L2_LABEL = "Severity/Critical";
-final string L3_LABEL = "Severity/Major";
+http:Client gitGraphQLEP = new(GIT_GRAPHQL_API);
 
 //when we pass the required  this query willretirve the total open issue count for given milestone and given lables
 public string QUERY_ISSUES = string `

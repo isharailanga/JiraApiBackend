@@ -18,30 +18,13 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/io;
 
-# Constant field `QUESTION_MARK`. Holds the value of "?".
-final string QUESTION_MARK = "?";
-
-# Constant field `EMPTY_STRING`. Holds the value of "".
-final string EMPTY_STRING = "";
-
-# Constant field `EQUAL_SIGN`. Holds the value of "=".
-final string EQUAL_SIGN = "=";
-
-# Constant field `AMPERSAND`. Holds the value of "&".
-final string AMPERSAND = "&";
-
-// For URL encoding
-# Constant field `ENCODING_CHARSET`. Holds the value for the encoding charset.
-final string ENCODING_CHARSET = "utf-8";
-
-http:Client jiraClientEP = new("https://support.wso2.com");
+http:Client jiraClientEP = new(JIRA_REST_API);
 
 function getIssueMetaDetails(string productName, string labels) returns (json) {
     http:Request req = new;
     req.addHeader("Authorization", "Basic " + JIRA_AUTH_KEY);
 
-    string reqURL = "";
-    reqURL = "/jira/rest/api/2/search";
+    string reqURL = "/jira/rest/api/2/search";
 
     string product = mapToProductJiraProject(productName);
     json|error totalIssueCountJson = getTotalIssueCount(reqURL, product, labels, req);
@@ -156,6 +139,5 @@ function prepareQueryUrl(string paths, string[] queryParamNames, string[] queryP
         }
         i = i + 1;
     }
-
     return url;
 }
