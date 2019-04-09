@@ -47,7 +47,7 @@ service jiraIssueService on httpListener {
         string? labelsString = filterValues["labels"];
 
         if (labelsString is string) {
-            json issueMetaDetails = getIssueMetaDetails(untaint productName, untaint labelsString, JIRA_AUTH_KEY);
+            json issueMetaDetails = getIssueMetaDetails(untaint productName, untaint labelsString);
             response.setJsonPayload(untaint issueMetaDetails);
         }
 
@@ -69,7 +69,7 @@ service jiraIssueService on httpListener {
         time:Time startTime = time:currentTime();
         http:Response response = new;
 
-        json versionArr = getProductVersions(untaint productName, GITHUB_AUTH_KEY);
+        json versionArr = getProductVersions(untaint productName);
         json versions = { versions: versionArr };
 
         response.setJsonPayload(untaint versions);
@@ -172,13 +172,18 @@ service jiraIssueService on httpListener {
         methods: ["GET"],
         path: "/gitIssues/{productName}"
     }
-    resource function getGitIssues(http:Caller caller, http:Request request, string productName) {
+    resource function getGitIssues(http:Caller caller, http:Request request, string productName,string milestoneNo) {
         // Find the requested order from the map and retrieve it in JSON format.
         time:Time startTime = time:currentTime();
         http:Response response = new;
 
-        json count = getGitIssueCount(productName);
-        response.setJsonPayload(untaint count);
+        map<string> filterValues = request.getQueryParams();
+        string? labelsString = filterValues["labels"];
+
+        if (labelsString is string) {
+            json count = getGitIssueCount(productName,milestoneNo);
+            response.setJsonPayload(untaint count);
+        }
 
         time:Time endTime = time:currentTime();
         int totalTime = endTime.time - startTime.time;

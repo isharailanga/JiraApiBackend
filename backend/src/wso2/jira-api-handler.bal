@@ -36,9 +36,9 @@ final string ENCODING_CHARSET = "utf-8";
 
 http:Client jiraClientEP = new("https://support.wso2.com");
 
-function getIssueMetaDetails(string productName, string labels, string authKey) returns (json) {
+function getIssueMetaDetails(string productName, string labels) returns (json) {
     http:Request req = new;
-    req.addHeader("Authorization", "Basic " + authKey);
+    req.addHeader("Authorization", "Basic " + JIRA_AUTH_KEY);
 
     string reqURL = "";
     reqURL = "/jira/rest/api/2/search";

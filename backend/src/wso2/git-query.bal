@@ -19,39 +19,66 @@ import ballerina/log;
 import ballerina/io;
 import ballerina/mime;
 
-//when we pass the required arible this query willretirve the total open issue count for given milestone and given lables
-public const string QUERY_PR = "query ($owner: String!, $name: String!, $milestoneNumber: Int!, $label: [String!]) {
-  repository(owner: $owner, name: $name) {
-    milestone(number: $milestoneNumber) {
+http:Client gitGraphQLEP = new("https://api.github.com/graphql");
+//when we pass the required  this query willretirve the total open issue count for given milestone and given lables
+public string QUERY_ISSUES = string `
+query {
+  repository(owner: "<OWNER>", name: "<REPONAME>") {
+    milestone(number: <MILESTONENUMBER>) {
       title
-      issues(first: 100, states: [OPEN], orderBy: {field: CREATED_AT, direction: DESC}, labels: $label) {
-        pageInfo {
-          hasNextPage
-          endCursor
-        }
+      issues(first: 100, states: [OPEN], orderBy: {field: CREATED_AT, direction: DESC}, labels: "<LABELS>") {
         totalCount
       }
     }
   }
-}" ;
-
-// input variables
-//{"owner": "wso2","name":"product-is","milestoneNumber": 75,"label": "Affected/5.7.0"}
-
-
-//retrieve latest 100 open milstones for a given repo, milestone number
-public const string QUERY_MILESTONES = "
-query {
-  organization(login: \"wso2\") {
-    repository(name: \"product-is\") {
-      milestones(first: 100, states: [OPEN], orderBy: {field: CREATED_AT, direction: DESC}) {
-        edges {
-          node {
-            number
-          }
-        }
-      }
-    }
-  }
 }
-";
+`;
+public function getGitIssueCount(string productName,string milestoneNo) returns (json) {
+    string repo = mapProductToRepo(productName);
+    http:Request req = new;
+
+    string graphQLquery = getIssueQuery(GIT_REPO_OWNER, repo, milestoneNo, "Type/Bug");
+    json jsonPayLoad = { "query": graphQLquery };
+    json|error result = null;
+
+    req.addHeader("Authorization", "Bearer " + GITHUB_AUTH_KEY);
+    req.setJsonPayload(jsonPayLoad);
+    var resp = gitGraphQLEP->post("", req);
+
+    json gitIssueCount = null;
+    if (resp is http:Response) {
+        result = resp.getJsonPayload();
+        if (result is json) {
+            json temp=result;
+            json productVersion = temp["data"]["repository"]["milestone"]["title"];
+            json issueCount = temp["data"]["repository"]["milestone"]["issues"]["totalCount"];
+
+            gitIssueCount = {
+                productVersion: productVersion,
+                issueCount: issueCount
+            };
+            return gitIssueCount;
+        }
+    }
+    return gitIssueCount;
+
+}
+
+
+public function getIssueQuery(string org, string repo, string milestoneNo, string label) returns (string) {
+    string[] tokens = ["<OWNER>", "<REPONAME>", "<MILESTONENUMBER>", "<LABELS>"];
+    string[] replaceTokens = [org, repo, milestoneNo, label];
+    string queryForIssues = formatQuery(QUERY_ISSUES, tokens, replaceTokens);
+    return queryForIssues;
+}
+
+function formatQuery(string queryForIssues, string[] tokens, string[] replaceTokens) returns (string) {
+    int i = 0;
+    string queryForIssuesFormatted = queryForIssues;
+    foreach var token in tokens {
+        string replaceToken = replaceTokens[i];
+        queryForIssuesFormatted = queryForIssuesFormatted.replaceAll(token, replaceToken);
+        i = i + 1;
+    }
+    return queryForIssuesFormatted;
+}

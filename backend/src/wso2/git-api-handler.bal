@@ -23,9 +23,9 @@ final string GIT_REPO_OWNER = "wso2";
 
 http:Client gitClientEP = new("https://api.github.com");
 
-function getProductVersions(string productName, string authKey) returns (json) {
+function getProductVersions(string productName) returns (json) {
     http:Request req = new;
-    req.addHeader("Authorization", "token " + authKey);
+    req.addHeader("Authorization", "token " + GITHUB_AUTH_KEY);
     json versions = [];
 
     string product = mapToProductJiraProject(productName);
@@ -57,7 +57,7 @@ function getProductMilestones(string path, http:Request req) returns (json|error
         if (respJson.length() > 0)
         {
             while (i < respJson.length()) {
-                milestonesArray[i] ={};
+                milestonesArray[i] = {};
                 milestonesArray[i].title = respJson[i].title;
                 milestonesArray[i].number = respJson[i].number;
                 i = i + 1;
@@ -73,17 +73,17 @@ function getProductMilestones(string path, http:Request req) returns (json|error
 //This function will map the given JIRA project to the GIT product-repo name
 function mapProductToRepo(string product) returns (string) {
     string repo = "";
-    if (product.equalsIgnoreCase("APIMINTERNAL")) {
+    if (product.equalsIgnoreCase("API Management")) {
         repo = "product-apim";
-    } else if (product.equalsIgnoreCase("IAMINTERNAL")) {
+    } else if (product.equalsIgnoreCase("IAM")) {
         repo = "product-is";
-    } else if (product.equalsIgnoreCase("EIINTERNAL")) {
+    } else if (product.equalsIgnoreCase("Integration")) {
         repo = "product-ei";
-    } else if (product.equalsIgnoreCase("ANALYTICSINTERNAL")) {
+    } else if (product.equalsIgnoreCase("Analytics")) {
         repo = "product-sp";
-    } else if (product.equalsIgnoreCase("OBINTERNAL")) {
+    } else if (product.equalsIgnoreCase("Financial Solutions")) {
         repo = "financial-open-banking";
-    } else if (product.equalsIgnoreCase("CLOUDINTERNAL")) {
+    } else if (product.equalsIgnoreCase("Cloud")) {
         repo = "cloud";
     }
     return repo;
