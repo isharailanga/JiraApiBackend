@@ -57,7 +57,9 @@ function getProductMilestones(string path, http:Request req) returns (json|error
         if (respJson.length() > 0)
         {
             while (i < respJson.length()) {
-                milestonesArray[i] = respJson[i].title;
+                milestonesArray[i] ={};
+                milestonesArray[i].title = respJson[i].title;
+                milestonesArray[i].number = respJson[i].number;
                 i = i + 1;
             }
         }
