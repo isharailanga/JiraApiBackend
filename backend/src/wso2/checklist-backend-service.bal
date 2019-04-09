@@ -29,14 +29,14 @@ string JIRA_AUTH_KEY = config:getAsString("JIRA_AUTH_KEY");
 string GITHUB_AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
 
 @http:ServiceConfig {
-    basePath: "/jiraIssues"
+    basePath: "/checklist"
 }
 service jiraIssueService on httpListener {
     // Resource that handles the HTTP GET requests that are directed to a specific endpoint
 
     @http:ResourceConfig {
         methods: ["GET"],
-        path: "/product/{productName}"
+        path: "/jiraIssues/{productName}"
     }
     resource function retrieveAllIssuesByProduct(http:Caller caller, http:Request request, string productName) {
         // Find the requested order from the map and retrieve it in JSON format.
@@ -157,6 +157,27 @@ service jiraIssueService on httpListener {
         http:Response response = new;
 
         json count = getLineCoverage(productName);
+        response.setJsonPayload(untaint count);
+
+        time:Time endTime = time:currentTime();
+        int totalTime = endTime.time - startTime.time;
+        // Send response to the client.
+        var result = caller->respond(response);
+        if (result is error) {
+            log:printError("Error sending response", err = result);
+        }
+    }
+
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/gitIssues/{productName}"
+    }
+    resource function getGitIssues(http:Caller caller, http:Request request, string productName) {
+        // Find the requested order from the map and retrieve it in JSON format.
+        time:Time startTime = time:currentTime();
+        http:Response response = new;
+
+        json count = getGitIssueCount(productName);
         response.setJsonPayload(untaint count);
 
         time:Time endTime = time:currentTime();
