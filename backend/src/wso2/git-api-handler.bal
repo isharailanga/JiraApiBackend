@@ -28,11 +28,9 @@ function getProductVersions(string productName) returns (json) {
     req.addHeader("Authorization", "token " + GITHUB_AUTH_KEY);
     json versions = [];
 
-    string product = mapToProductJiraProject(productName);
-    string productRepo = mapProductToRepo(product);
+    string productRepo = mapProductToRepo(productName);
 
     string reqURL = "/repos" + "/" + GIT_REPO_OWNER + "/" + productRepo + "/milestones?state=active";
-
     json|error productMilestones = getProductMilestones(reqURL, req);
 
     if (productMilestones is json) {

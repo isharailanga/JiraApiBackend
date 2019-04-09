@@ -25,8 +25,8 @@ import ballerina/config;
 task:Timer? timer = ();
 
 listener http:Listener httpListener = new(9095);
-string JIRA_AUTH_KEY = config:getAsString("JIRA_AUTH_KEY");
-string GITHUB_AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
+final string JIRA_AUTH_KEY = config:getAsString("JIRA_AUTH_KEY");
+final string GITHUB_AUTH_KEY = config:getAsString("GITHUB_AUTH_KEY");
 
 @http:ServiceConfig {
     basePath: "/checklist"
@@ -172,16 +172,16 @@ service jiraIssueService on httpListener {
         methods: ["GET"],
         path: "/gitIssues/{productName}"
     }
-    resource function getGitIssues(http:Caller caller, http:Request request, string productName,string milestoneNo) {
+    resource function getGitIssues(http:Caller caller, http:Request request, string productName) {
         // Find the requested order from the map and retrieve it in JSON format.
         time:Time startTime = time:currentTime();
         http:Response response = new;
 
         map<string> filterValues = request.getQueryParams();
-        string? labelsString = filterValues["labels"];
+        string? versionString = filterValues["version"];
 
-        if (labelsString is string) {
-            json count = getGitIssueCount(productName,milestoneNo);
+        if (versionString is string) {
+            json count = getGitIssueCount(productName,versionString);
             response.setJsonPayload(untaint count);
         }
 
