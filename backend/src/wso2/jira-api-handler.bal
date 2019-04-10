@@ -84,7 +84,7 @@ function getOpenIssueCount(string path, string product, string labels, http:Requ
 
     // prepare jql to query open issues
     string jql = "project=" + product + " and labels in (" + labels + ") " +
-        "and resolution not in (Answered,Completed,Done,Duplicate,Fixed)";
+        "and (resolution not in (Answered,Completed,Done,Duplicate,Fixed) or resolution = Unresolved )";
 
     // creating array of query parameters key & values
     string[] queryParamNames = ["jql", "startAt", "maxResults"];
