@@ -4,9 +4,11 @@ Backend for Checklist widget
 
 Steps to deploy:
 
+- Setup [Ballerina 0.990.2](https://ballerina.io/downloads/archived/) runtime on a local folder
+
 - Add ballerina.conf to <REPO_HOME>/backend 
 
-- Sample ballerina.conf :
+  Sample ballerina.conf :
 ```
   JIRA_AUTH_KEY = "xxxx"
   GITHUB_AUTH_KEY = "xxx"
