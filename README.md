@@ -18,7 +18,10 @@ USERNAME="root"
 PASSWORD="root"
 ```
 
-Create the .balx files by executing the the given command in <REPO_HOME>/backend/src  
+- Go to <REPO_HOME>/backend/src and initialize the project ```ballerina init``` 
 
+- Create the .balx files by  ``` ballerina build wso2```
+
+- Run the created .balx files ```ballerina run -c ../ballerina.conf target/wso2.balx``` to start the service.
 
 
