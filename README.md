@@ -4,21 +4,26 @@ Backend for Checklist widget
 
 Steps to deploy:
 
-Add ballerina.conf to <REPO_HOME>/backend 
+- Setup [Ballerina 0.990.2](https://ballerina.io/downloads/archived/) runtime on a local folder
 
-Sample ballerina.conf :
+- Add ballerina.conf to <REPO_HOME>/backend 
+
+  Sample ballerina.conf :
 ```
-JIRA_AUTH_KEY = "xxxx"
-GITHUB_AUTH_KEY = "xxx"
+  JIRA_AUTH_KEY = "xxxx"
+  GITHUB_AUTH_KEY = "xxx"
 
-DB_HOST="localhost"
-DB_PORT="3306"
-DB_NAME="WSO2_PRODUCT_COMPONENT"
-USERNAME="root"
-PASSWORD="root"
+  DB_HOST="localhost"
+  DB_PORT="3306"
+  DB_NAME="WSO2_PRODUCT_COMPONENT"
+  USERNAME="root"
+  PASSWORD="root"
 ```
 
-Create the .balx files by executing the the given command in <REPO_HOME>/backend/src  
+- Go to <REPO_HOME>/backend/src and initialize the project ```ballerina init``` 
 
+- Create the .balx files by  ``` ballerina build wso2```
+
+- Run the created .balx files ```ballerina run -c ../ballerina.conf target/wso2.balx``` to start the service.
 
 
