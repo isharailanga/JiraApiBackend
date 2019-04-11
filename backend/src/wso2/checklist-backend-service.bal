@@ -78,7 +78,7 @@ service jiraIssueService on httpListener {
         http:Response response = new;
 
         json productNamesArr = getAllProductNames();
-        json productNames = {products:productNamesArr};
+        json productNames = { products: productNamesArr };
         response.setJsonPayload(untaint productNames);
 
         var result = caller->respond(response);
@@ -95,8 +95,13 @@ service jiraIssueService on httpListener {
 
         http:Response response = new;
 
-        json count = getPendingDocTasks(productName);
-        response.setJsonPayload(untaint count);
+        map<string> filterValues = request.getQueryParams();
+        string? versionString = filterValues["version"];
+
+        if (versionString is string) {
+            json count = getPendingDocTasks(productName, versionString);
+            response.setJsonPayload(untaint count);
+        }
 
         var result = caller->respond(response);
         if (result is error) {
@@ -147,7 +152,7 @@ service jiraIssueService on httpListener {
         string? versionString = filterValues["version"];
 
         if (versionString is string) {
-            json count = getGitIssueCount(productName,versionString);
+            json count = getGitIssueCount(productName, versionString);
             response.setJsonPayload(untaint count);
         }
 

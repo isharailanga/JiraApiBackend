@@ -54,10 +54,10 @@ function getAllProductNames() returns (json) {
     }
 }
 
-function getPendingDocTasks(string product) returns (json) {
+function getPendingDocTasks(string product, string milestone) returns (json) {
     string sqlQuery = "SELECT COUNT(PR_ID) AS mprCount FROM PRODUCT_PRS WHERE DOC_STATUS IN (0,1,2,3,4) AND" +
-        " PRODUCT_ID=(SELECT PRODUCT_ID FROM PRODUCT WHERE PRODUCT_NAME = ? )";
-    var prCount = dashboardDB->select(sqlQuery, (), product);
+        " PRODUCT_ID=(SELECT PRODUCT_ID FROM PRODUCT WHERE PRODUCT_NAME = ? ) AND MILESTONE = ?";
+    var prCount = dashboardDB->select(sqlQuery, (), product, milestone);
     if (prCount is table< record {} >) {
         var count = json.convert(prCount);
         if (count is json) {
