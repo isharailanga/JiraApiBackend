@@ -96,8 +96,20 @@ function getDependencySummary(string product) returns (json) {
 }
 
 function getLineCoverage(string product) returns (json) {
-    string sqlQuery = "SELECT FORMAT ( (((TOTAL_LINES-MISSED_LINES)/TOTAL_LINES)*100) , 2  ) AS lineCoverage
-                        FROM CODE_COVERAGE_SUMMARY,PRODUCT
+
+    float instructionCov = 0;
+    float branchCov = 0;
+    float complexityCov = 0;
+    float lineCov = 0;
+    float methodCov = 0;
+    float classCov = 0;
+
+    json codeCoverage = {};
+
+    string sqlQuery = "SELECT TOTAL_INSTRUCTIONS, MISSED_INSTRUCTIONS, TOTAL_BRANCHES, MISSED_BRANCHES,
+                        TOTAL_CXTY, MISSED_CXTY, TOTAL_LINES, MISSED_LINES,
+                        TOTAL_METHODS, MISSED_METHODS, TOTAL_CLASSES,MISSED_CLASSES
+                        FROM CODE_COVERAGE_SUMMARY, PRODUCT
                         WHERE CODE_COVERAGE_SUMMARY.PRODUCT_ID=PRODUCT.PRODUCT_ID
                         AND PRODUCT_NAME = ? AND
                         CODE_COVERAGE_SUMMARY.DATE LIKE
@@ -108,17 +120,93 @@ function getLineCoverage(string product) returns (json) {
     var coverage = dashboardDB->select(sqlQuery, (), product);
 
     if (coverage is table< record {} >) {
-        var count = json.convert(coverage);
-        if (count is json) {
-            return count[0];
+        var result = json.convert(coverage);
+        if (result is json) {
+            if (result.length() > 0) {
+
+                // Instruction Coverage - casting the data to float
+                string strTotInstrutions = result[0].TOTAL_INSTRUCTIONS.toString();
+                float|error totInstructions = float.convert(strTotInstrutions);
+
+                string strMissedInstructions = result[0].MISSED_INSTRUCTIONS.toString();
+                float|error missedInstructions = float.convert(strMissedInstructions);
+
+                //Instruction Coverage - calculating coverage
+                if (totInstructions is float && missedInstructions is float) {
+                    instructionCov = ((totInstructions - missedInstructions) / totInstructions) * 100;
+                }
+
+                //Branch Coverage
+                string strTotBranches = result[0].TOTAL_BRANCHES.toString();
+                float|error totBranches = float.convert(strTotBranches);
+
+                string strMissedBranches = result[0].MISSED_BRANCHES.toString();
+                float|error missedBranches = float.convert(strMissedBranches);
+
+                if (totBranches is float && missedBranches is float) {
+                    branchCov = ((totBranches - missedBranches) / totBranches) * 100;
+                }
+
+                //Complexity Coverage
+                string strTotComplexity = result[0].TOTAL_CXTY.toString();
+                float|error totComplexity = float.convert(strTotComplexity);
+
+                string strMissedComplexity = result[0].MISSED_CXTY.toString();
+                float|error missedComplexity = float.convert(strMissedComplexity);
+
+                if (totComplexity is float && missedComplexity is float) {
+                    complexityCov = ((totComplexity - missedComplexity) / totComplexity) * 100;
+                }
+
+                //Line Coverage
+                string strTotLines = result[0].TOTAL_LINES.toString();
+                float|error totLines = float.convert(strTotLines);
+
+                string strMissedLines = result[0].MISSED_LINES.toString();
+                float|error missedLines = float.convert(strMissedLines);
+
+                if (totLines is float && missedLines is float) {
+                    lineCov = ((totLines - missedLines) / totLines) * 100;
+                }
+
+                //Method Coverage
+                string strTotMethods = result[0].TOTAL_METHODS.toString();
+                float|error totMethods = float.convert(strTotMethods);
+
+                string strMissedMethods = result[0].MISSED_METHODS.toString();
+                float|error missedMethods = float.convert(strMissedMethods);
+
+                if (totMethods is float && missedMethods is float) {
+                    methodCov = ((totMethods - missedMethods) / totMethods) * 100;
+                }
+
+                //Class coverage
+                string strTotClasses = result[0].TOTAL_CLASSES.toString();
+                float|error totClasses = float.convert(strTotClasses);
+
+                string strMissedClasses = result[0].MISSED_CLASSES.toString();
+                float|error missedClasses = float.convert(strMissedClasses);
+
+                if (totClasses is float && missedClasses is float) {
+                    classCov = ((totClasses - missedClasses) / totClasses) * 100;
+                }
+            }
         } else {
-            log:printError("Error occured while converting the retrieved " + product + " line coverage to json.",
-                err = count);
+            log:printError("Error occured while converting the retrieved " + product + " code coverage to json.",
+                err = result);
         }
     } else {
-        log:printError("Error occured while retrieving the " + product + " line coverage from database.", err =
+        log:printError("Error occured while retrieving the " + product + " code coverage from database.", err =
             coverage);
     }
+
+    codeCoverage.instructionCov = instructionCov;
+    codeCoverage.branchCov = branchCov;
+    codeCoverage.complexityCov = complexityCov;
+    codeCoverage.lineCov = lineCov;
+    codeCoverage.methodCov = methodCov;
+    codeCoverage.classCov = classCov;
+    return codeCoverage;
 }
 
 //This function will map the given JIRA project to the product name
