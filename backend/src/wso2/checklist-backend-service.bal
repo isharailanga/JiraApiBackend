@@ -71,7 +71,7 @@ service jiraIssueService on httpListener {
 
     @http:ResourceConfig {
         methods: ["GET"],
-        path: "/productnames"
+        path: "/productNames"
     }
     resource function retrieveProductNames(http:Caller caller, http:Request request) {
 
@@ -89,7 +89,7 @@ service jiraIssueService on httpListener {
 
     @http:ResourceConfig {
         methods: ["GET"],
-        path: "/mprcount/{productName}"
+        path: "/mprCount/{productName}"
     }
     resource function getPendingDocTaskCount(http:Caller caller, http:Request request, string productName) {
 
