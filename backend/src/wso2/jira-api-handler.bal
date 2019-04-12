@@ -18,7 +18,7 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/io;
 
-http:Client jiraClientEP = new(JIRA_REST_API);
+http:Client jiraClientEP = new(JIRA_API);
 
 function getIssueMetaDetails(string productName, string labels) returns (json) {
     http:Request req = new;
@@ -44,6 +44,7 @@ function getIssueMetaDetails(string productName, string labels) returns (json) {
         }
         issuesMetaDetails.totalIssues = totalIssueCountJson.total;
         issuesMetaDetails.openIssues = openIssueCountJson.total;
+        issuesMetaDetails.refLink = openIssueCountJson.jql;
         return issuesMetaDetails;
     } else {
         log:printError("Error converting response payload to json for JIRA issue count.");
@@ -97,6 +98,7 @@ function getOpenIssueCount(string path, string product, string labels, http:Requ
     if (response is http:Response) {
 
         issuesMetaDetails = check response.getJsonPayload();
+        issuesMetaDetails.jql = JIRA_API + "/jira/issues/?jql=" + jql;
         return issuesMetaDetails;
     } else {
         log:printError("Error occured while retrieving data from JIRA API", err = response);

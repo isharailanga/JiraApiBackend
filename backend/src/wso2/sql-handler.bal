@@ -219,6 +219,8 @@ function getCodeCoverage(string product) returns (json) {
     codeCoverage.lineCov = strLineCov;
     codeCoverage.methodCov = strMethodCov;
     codeCoverage.classCov = strClassCov;
+    codeCoverage.refLink = CODE_COVERAGE_DASHBOARD_URL;
+
     return codeCoverage;
 }
 

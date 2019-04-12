@@ -24,7 +24,7 @@ final string GIT_REPO_OWNER = "wso2";
 # REST APIs for Github, GraphQL and JIRA
 final string GIT_REST_API = "https://api.github.com";
 final string GIT_GRAPHQL_API = "https://api.github.com/graphql";
-final string JIRA_REST_API = "https://support.wso2.com";
+final string JIRA_API = "https://support.wso2.com";
 
 # GITHUB Issue labelling
 final string L1_LABEL = "Severity/Blocker";
@@ -58,3 +58,7 @@ final string JIRA_APIM="APIMINTERNAL";
 final string JIRA_IS="IAMINTERNAL";
 final string JIRA_EI="EIINTERNAL";
 final string JIRA_OB="OBINTERNAL";
+
+# Reference Links
+final string CODE_COVERAGE_DASHBOARD_URL = "/portal/dashboards/codecoverage/home";
+final string GIT_ISSUE_DASHBOARD_URL = "/portal/dashboards/gitissuedashboard/home";

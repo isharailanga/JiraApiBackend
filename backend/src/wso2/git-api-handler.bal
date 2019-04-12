@@ -85,7 +85,8 @@ public function getGitIssueCount(string productName, string milestoneNo) returns
     json issueCount = {
         L1Issues: count[0],
         L2Issues: count[1],
-        L3Issues: count[2]
+        L3Issues: count[2],
+        refLink: GIT_ISSUE_DASHBOARD_URL
     };
     return issueCount;
 
