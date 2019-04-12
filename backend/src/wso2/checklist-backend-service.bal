@@ -127,12 +127,12 @@ service jiraIssueService on httpListener {
 
     @http:ResourceConfig {
         methods: ["GET"],
-        path: "/linecoverage/{productName}"
+        path: "/codeCoverage/{productName}"
     }
-    resource function getProductLineCoverage(http:Caller caller, http:Request request, string productName) {
+    resource function getProductCodeCoverage(http:Caller caller, http:Request request, string productName) {
         http:Response response = new;
 
-        json count = getLineCoverage(productName);
+        json count = getCodeCoverage(productName);
         response.setJsonPayload(untaint count);
 
         var result = caller->respond(response);

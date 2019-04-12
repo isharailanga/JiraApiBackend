@@ -95,14 +95,14 @@ function getDependencySummary(string product) returns (json) {
     }
 }
 
-function getLineCoverage(string product) returns (json) {
+function getCodeCoverage(string product) returns (json) {
 
-    float instructionCov = 0;
-    float branchCov = 0;
-    float complexityCov = 0;
-    float lineCov = 0;
-    float methodCov = 0;
-    float classCov = 0;
+    string strInstructionCov = "0";
+    string strBranchCov = "0";
+    string strComplexityCov = "0";
+    string strLineCov = "0";
+    string strMethodCov = "0";
+    string strClassCov = "0";
 
     json codeCoverage = {};
 
@@ -124,6 +124,13 @@ function getLineCoverage(string product) returns (json) {
         if (result is json) {
             if (result.length() > 0) {
 
+                float instructionCov = 0;
+                float branchCov = 0;
+                float complexityCov = 0;
+                float lineCov = 0;
+                float methodCov = 0;
+                float classCov = 0;
+
                 // Instruction Coverage - casting the data to float
                 string strTotInstrutions = result[0].TOTAL_INSTRUCTIONS.toString();
                 float|error totInstructions = float.convert(strTotInstrutions);
@@ -134,6 +141,7 @@ function getLineCoverage(string product) returns (json) {
                 //Instruction Coverage - calculating coverage
                 if (totInstructions is float && missedInstructions is float) {
                     instructionCov = ((totInstructions - missedInstructions) / totInstructions) * 100;
+                    strInstructionCov = io:sprintf("%.2f", instructionCov);
                 }
 
                 //Branch Coverage
@@ -145,6 +153,7 @@ function getLineCoverage(string product) returns (json) {
 
                 if (totBranches is float && missedBranches is float) {
                     branchCov = ((totBranches - missedBranches) / totBranches) * 100;
+                    strBranchCov = io:sprintf("%.2f", branchCov);
                 }
 
                 //Complexity Coverage
@@ -156,6 +165,7 @@ function getLineCoverage(string product) returns (json) {
 
                 if (totComplexity is float && missedComplexity is float) {
                     complexityCov = ((totComplexity - missedComplexity) / totComplexity) * 100;
+                    strComplexityCov = io:sprintf("%.2f", complexityCov);
                 }
 
                 //Line Coverage
@@ -167,6 +177,7 @@ function getLineCoverage(string product) returns (json) {
 
                 if (totLines is float && missedLines is float) {
                     lineCov = ((totLines - missedLines) / totLines) * 100;
+                    strLineCov = io:sprintf("%.2f", lineCov);
                 }
 
                 //Method Coverage
@@ -178,6 +189,7 @@ function getLineCoverage(string product) returns (json) {
 
                 if (totMethods is float && missedMethods is float) {
                     methodCov = ((totMethods - missedMethods) / totMethods) * 100;
+                    strMethodCov = io:sprintf("%.2f", methodCov);
                 }
 
                 //Class coverage
@@ -189,6 +201,7 @@ function getLineCoverage(string product) returns (json) {
 
                 if (totClasses is float && missedClasses is float) {
                     classCov = ((totClasses - missedClasses) / totClasses) * 100;
+                    strClassCov = io:sprintf("%.2f", classCov);
                 }
             }
         } else {
@@ -200,12 +213,12 @@ function getLineCoverage(string product) returns (json) {
             coverage);
     }
 
-    codeCoverage.instructionCov = instructionCov;
-    codeCoverage.branchCov = branchCov;
-    codeCoverage.complexityCov = complexityCov;
-    codeCoverage.lineCov = lineCov;
-    codeCoverage.methodCov = methodCov;
-    codeCoverage.classCov = classCov;
+    codeCoverage.instructionCov = strInstructionCov;
+    codeCoverage.branchCov = strBranchCov;
+    codeCoverage.complexityCov = strComplexityCov;
+    codeCoverage.lineCov = strLineCov;
+    codeCoverage.methodCov = strMethodCov;
+    codeCoverage.classCov = strClassCov;
     return codeCoverage;
 }
 
