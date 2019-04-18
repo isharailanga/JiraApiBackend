@@ -19,6 +19,7 @@ import ballerina/mysql;
 import ballerina/log;
 import ballerina/time;
 import ballerina/config;
+import ballerina/internal;
 
 mysql:Client dashboardDB = new({
         host: config:getAsString("DB_HOST"),
@@ -59,13 +60,23 @@ function getPendingDocTasks(string product, string milestone) returns (json) {
         " PRODUCT_ID=(SELECT PRODUCT_ID FROM PRODUCT WHERE PRODUCT_NAME = ? ) AND MILESTONE = ?";
     var prCount = dashboardDB->select(sqlQuery, (), product, milestone);
     if (prCount is table< record {} >) {
+        json response = {};
+
+        // Set the reference link
+        string stringUrl = string `/portal/dashboards/mprdashboard/home`
+            + string `#{"product":"{{product}}","version":"{{milestone}}"}`;
+
         var count = json.convert(prCount);
+
         if (count is json) {
-            return count[0];
+            response.mprCount = count[0].mprCount;
+            response.refLink = stringUrl;
+            return response;
         } else {
             log:printError("Error occured while converting the retrieved " + product + " merged PR count to json.",
                 err = count);
         }
+
     } else {
         log:printError("Error occured while retrieving the " + product + " merged PR count from database.", err =
             prCount);
