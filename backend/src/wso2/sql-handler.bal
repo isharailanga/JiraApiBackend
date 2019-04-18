@@ -92,10 +92,17 @@ function getDependencySummary(string product) returns (json) {
             PRODUCT_REPOS.REPO_ID = DEPENDENCY_SUMMARY.REPO_ID;";
     var summary = dashboardDB->select(sqlQuery, (), product);
 
+    // Set the reference link
+    string stringUrl = string `/portal/dashboards/dependencydashboard/home`
+        + string `#{"org":"{{GIT_REPO_OWNER}}","product":"{{product}}"}`;
+
     if (summary is table< record {} >) {
         var count = json.convert(summary);
+        json response = {};
         if (count is json) {
-            return count[0];
+            response.dependencySummary = count[0].dependencySummary;
+            response.refLink = stringUrl;
+            return response;
         } else {
             log:printError("Error occured while converting the retrieved " + product + " dependency summary to json.",
                 err = count);
