@@ -14,15 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/io;
-import ballerina/http;
-import ballerina/log;
-import ballerina/internal;
-import ballerina/time;
-import ballerina/task;
-import ballerina/config;
-
-listener http:Listener httpListener = new(9095);
+listener http:Listener httpListener = new(6095);
 
 @http:ServiceConfig {
     basePath: "/checklist"
